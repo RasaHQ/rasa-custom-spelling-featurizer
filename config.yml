@@ -4,6 +4,8 @@ pipeline:
 - name: printer.Printer
   alias: start
 - name: tbfeats.TextBlobTokenizer
+- name: printer.Printer
+  alias: with tokens
 - name: CountVectorsFeaturizer
 - name: CountVectorsFeaturizer
   analyzer: char_wb

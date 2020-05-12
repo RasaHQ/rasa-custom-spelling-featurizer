@@ -15,14 +15,6 @@ if typing.TYPE_CHECKING:
 from rasa.nlu.constants import DENSE_FEATURE_NAMES, DENSE_FEATURIZABLE_ATTRIBUTES, TEXT
 
 
-def _is_list_tokens(v):
-    if isinstance(v, List):
-        if len(v) > 0:
-            if isinstance(v[0], Token):
-                return True
-    return False
-
-
 def split_text(text):
     return re.sub(
             r"[^\w#@&]+(?=\s|$)|"
@@ -34,7 +26,20 @@ def split_text(text):
 
 
 class TextBlobTokenizer(Tokenizer):
-    language_list = "en"
+    language_list = ["en"]
+    defaults = {
+        # Flag to check whether to split intents
+        "intent_tokenization_flag": False,
+        # Symbol on which intent should be split
+        "intent_split_symbol": "_",
+        # Text will be tokenized with case sensitive as default
+        "case_sensitive": True,
+    }
+
+    def __init__(self, component_config: Dict[Text, Any] = None) -> None:
+        """Construct a new tokenizer using the TextBlobTokenizer framework."""
+        super().__init__(component_config)
+        self.case_sensitive = self.component_config["case_sensitive"]
 
     @classmethod
     def required_packages(cls) -> List[Text]:
@@ -42,7 +47,9 @@ class TextBlobTokenizer(Tokenizer):
 
     def tokenize(self, message: Message, attribute: Text) -> List[Token]:
         orig_text = message.get(attribute)
-        text = str(TextBlob(message.get(attribute)).correct())
+        if not self.case_sensitive:
+            orig_text = orig_text.lower()
+        text = str(TextBlob(orig_text).correct())
         orig_words = split_text(orig_text)
         words = split_text(text)
 
