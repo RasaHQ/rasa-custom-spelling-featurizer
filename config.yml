@@ -1,0 +1,26 @@
+language: en
+
+pipeline:
+- name: printer.Printer
+  alias: start
+- name: tbfeats.TextBlobTokenizer
+- name: CountVectorsFeaturizer
+- name: CountVectorsFeaturizer
+  analyzer: char_wb
+  min_ngram: 1
+  max_ngram: 4
+- name: printer.Printer
+  alias: after cv
+- name: LexicalSyntacticFeaturizer
+- name: printer.Printer
+  alias: after lexical syntactic featurizer
+- name: tbfeats.TextBlobFeaturizer
+- name: printer.Printer
+  alias: after textblob
+- name: DIETClassifier
+  epochs: 20
+
+policies:
+  - name: MemoizationPolicy
+  - name: TEDPolicy
+  - name: MappingPolicy
