@@ -407,6 +407,9 @@ You may wonder where the `DENSE_FEATURE_NAMES[attribute]` comes from. It's a bit
 an internal detail this constant allows us to differentiate between features for `intents` 
 as well as `responses`. The `DENSE_FEATURE_NAMES` variable is a constant. 
 
+
+### Output 
+
 If we now look at what the pipeline produces, we should see some 
 dense features appear as well. 
 
@@ -447,7 +450,7 @@ entities: []
 original_words: ['hallo', 'chatbot', 'i', 'wanna', 'buy', 'a', 'pizza']
 tokens: ['hallo', 'charcot', 'i', 'anna', 'buy', 'a', 'penza', '__CLS__']
 text_sparse_features: <8x602 sparse matrix of type '<class 'numpy.float64'>'
-        with 187 stored elements in COOrdinate format>
+                       with 187 stored elements in COOrdinate format>
 text_dense_features: array([[0.        , 1.        ],
                             [1.        , 0.76      ],
                             [0.        , 1.        ],
