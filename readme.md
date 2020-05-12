@@ -239,6 +239,8 @@ original_words: ['hello', 'werld']
 tokens: ['hello', 'world', '__CLS__']
 ```
 
+Notice how `werld` got translated into `world`. 
+
 ## Creating Features
 
 It's nice that we've created our own tokenizer but since we're changing the original data
@@ -366,13 +368,52 @@ to handle one `message` at a time because it is used during inference.
 6. Because both `train` and `process` do similar things I've added a `_set_textblob_features`
 method to handle a single instance which can be used in both methods. 
 
-It's good to zoom in on the `_set_textblob_features` method for a full appreciat
+It's good to zoom in on the `_set_textblob_features` method for a full appreciation of what
+happens in there. We've copied the method below and added comments for clarity.
 
+```python
+def _set_textblob_features(self, message: Message, attribute: Text = TEXT):
+    # we manually grab all the tokens except the `__CLS__` one
+    tokens = [t.text for t in message.data['tokens'] if t != '__CLS__']
+    # we grab the original words, which did not get a spellcheck 
+    orig = message.data['original_words']
+
+    # we make a feature that detects if a correction has been made
+    correction_made = [t != o for t, o in zip(tokens, orig)]
+    # for the __CLS__ we make a sentence summary if there's any change
+    correction_made += [any(correction_made)]  # for __CLS__
+    # we make a feature that gives the spelling confidence back
+    confidence = [Word(o).spellcheck()[0][1] for o in orig]
+    # for the __CLS__ we make a sentence summary via the minimum confidence
+    confidence += [min(confidence)]  # for __CLS__
+
+    # we stack the two features together 
+    X = np.stack([
+        np.array(correction_made).astype(np.float),
+        np.array(confidence).astype(np.float)
+    ]).T
+
+    # we use `_combine_with_existing_dense_features` to make sure we don't
+    # overwrite the data that's attached to the message sofar, note that it
+    # is implemented in the `DenseFeaturizer` object that we inherit from 
+    features = self._combine_with_existing_dense_features(
+        message, additional_features=X, feature_name=DENSE_FEATURE_NAMES[attribute]
+    )
+    # here we finally add the data to the message. 
+    message.set(DENSE_FEATURE_NAMES[attribute], features)
+```
+
+You may wonder where the `DENSE_FEATURE_NAMES[attribute]` comes from. It's a bit of
+an internal detail this constant allows us to differentiate between features for `intents` 
+as well as `responses`. The `DENSE_FEATURE_NAMES` variable is a constant. 
 
 If we now look at what the pipeline produces, we should see some 
 dense features appear as well. 
 
 ```
+> rasa train
+> rasa shell 
+> hello werld
 text : hallo werld
 intent: {'name': None, 'confidence': 0.0}
 entities: []
@@ -381,6 +422,42 @@ tokens: ['hallo', 'world', '__CLS__']
 text_sparse_features: <3x602 sparse matrix of type '<class 'numpy.float64'>'
         with 75 stored elements in COOrdinate format>
 text_dense_features: array([[0.        , 1.        ],
-       [1.        , 0.99450549],
-       [1.        , 0.99450549]])
+                            [1.        , 0.99450549],
+                            [1.        , 0.99450549]])
 ```
+
+These dense features are now passed along to the `DIETClassifier`. 
+
+## Conclusion 
+
+The goal of this document was to demonstrate how components in Rasa work and 
+how you might write your own. We should be careful in using this in production
+though. It's possible that spelling errors have a bad effect on word embeddings
+but it is also possible that the spellchecker makes a translation that is worse. 
+
+Consider this example; 
+
+```
+> rasa shell 
+> hallo chatbot i wanna buy a pizza
+
+text : hallo chatbot i wanna buy a pizza
+intent: {'name': None, 'confidence': 0.0}
+entities: []
+original_words: ['hallo', 'chatbot', 'i', 'wanna', 'buy', 'a', 'pizza']
+tokens: ['hallo', 'charcot', 'i', 'anna', 'buy', 'a', 'penza', '__CLS__']
+text_sparse_features: <8x602 sparse matrix of type '<class 'numpy.float64'>'
+        with 187 stored elements in COOrdinate format>
+text_dense_features: array([[0.        , 1.        ],
+                            [1.        , 0.76      ],
+                            [0.        , 1.        ],
+                            [1.        , 0.99324324],
+                            [0.        , 1.        ],
+                            [0.        , 1.        ],
+                            [1.        , 0.66666667],
+                            [1.        , 0.66666667]])
+```
+
+In this case the word `wanna` is 'corrected' to `anna` and (worse yet) it even
+'corrected' `pizza` to `penza`. The word `hallo` did correctly get translated 
+but using a spellcheck in your pipeline is not without risk. 
