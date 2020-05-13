@@ -4,21 +4,25 @@ pipeline:
 - name: printer.Printer
   alias: start
 - name: tbfeats.TextBlobTokenizer
-- name: printer.Printer
-  alias: with tokens
 - name: CountVectorsFeaturizer
 - name: CountVectorsFeaturizer
   analyzer: char_wb
   min_ngram: 1
   max_ngram: 4
-- name: printer.Printer
-  alias: after cv
 - name: LexicalSyntacticFeaturizer
-- name: printer.Printer
-  alias: after lexical syntactic featurizer
 - name: tbfeats.TextBlobFeaturizer
+- name: ftfeat.FastTextFeaturizer
+  model: "/Users/vincent/Development/whatlies/cc.en.300.bin"
 - name: printer.Printer
-  alias: after textblob
+  alias: after fasttext
+- name: outlierfeature.OutlierComponent
+  n_estimators: 100
+- name: outlierfeature.OutlierComponent
+  n_estimators: 200
+- name: outlierfeature.OutlierComponent
+  n_estimators: 500
+- name: printer.Printer
+  alias: after outlier
 - name: DIETClassifier
   epochs: 20
 

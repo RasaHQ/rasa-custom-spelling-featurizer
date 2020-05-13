@@ -1,5 +1,6 @@
 import typing
 from typing import Any, Optional, Text, Dict, List, Type
+import numpy as np
 
 from rasa.nlu.components import Component
 from rasa.nlu.config import RasaNLUModelConfig
@@ -48,6 +49,8 @@ class Printer(Component):
         for k, v in message.data.items():
             if _is_list_tokens(v):
                 print(f"{k}: {[t.text for t in v]}")
+            elif isinstance(v, np.ndarray):
+                print(f"{k}: Dense array with shape {v.shape}")
             else:
                 print(f"{k}: {v.__repr__()}")
 
