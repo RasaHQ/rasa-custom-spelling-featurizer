@@ -17,12 +17,12 @@ from rasa.nlu.constants import DENSE_FEATURE_NAMES, DENSE_FEATURIZABLE_ATTRIBUTE
 
 def split_text(text):
     return re.sub(
-            r"[^\w#@&]+(?=\s|$)|"
-            r"(\s|^)[^\w#@&]+(?=[^0-9\\s])|"
-            r"(?<=[^0-9\s])[^\w._~:/?#\[\]()@!$&*+,;=-]+(?=[^0-9\s])",
-            " ",
-            text,
-        ).split()
+        r"[^\w#@&]+(?=\s|$)|"
+        r"(\s|^)[^\w#@&]+(?=[^0-9\\s])|"
+        r"(?<=[^0-9\s])[^\w._~:/?#\[\]()@!$&*+,;=-]+(?=[^0-9\s])",
+        " ",
+        text,
+    ).split()
 
 
 class TextBlobTokenizer(Tokenizer):
@@ -67,7 +67,7 @@ class TextBlobFeaturizer(DenseFeaturizer):
     def required_components(cls) -> List[Type[Component]]:
         """Specify which components need to be present in the pipeline."""
         return [TextBlobTokenizer]
-    
+
     @classmethod
     def required_packages(cls) -> List[Text]:
         return ["textblob"]
@@ -89,17 +89,19 @@ class TextBlobFeaturizer(DenseFeaturizer):
                 self._set_textblob_features(example, attribute)
 
     def _set_textblob_features(self, message: Message, attribute: Text = TEXT):
-        tokens = [t.text for t in message.data['tokens'] if t != '__CLS__']
-        orig = message.data['original_words']
+        tokens = [t.text for t in message.data["tokens"] if t != "__CLS__"]
+        orig = message.data["original_words"]
         correction_made = [t != o for t, o in zip(tokens, orig)]
         correction_made += [any(correction_made)]  # for __CLS__
         confidence = [Word(o).spellcheck()[0][1] for o in orig]
         confidence += [min(confidence)]  # for __CLS__
 
-        X = np.stack([
-            np.array(correction_made).astype(np.float),
-            np.array(confidence).astype(np.float)
-        ]).T
+        X = np.stack(
+            [
+                np.array(correction_made).astype(np.float),
+                np.array(confidence).astype(np.float),
+            ]
+        ).T
         features = self._combine_with_existing_dense_features(
             message, additional_features=X, feature_name=DENSE_FEATURE_NAMES[attribute]
         )

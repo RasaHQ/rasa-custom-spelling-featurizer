@@ -42,9 +42,9 @@ class Printer(Component):
         pass
 
     def process(self, message: Message, **kwargs: Any) -> None:
-        if self.component_config['alias']:
+        if self.component_config["alias"]:
             print("\n")
-            print(self.component_config['alias'])
+            print(self.component_config["alias"])
         print(f"text : {message.text}")
         for k, v in message.data.items():
             if _is_list_tokens(v):

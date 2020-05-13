@@ -12,7 +12,8 @@ pipeline:
 - name: LexicalSyntacticFeaturizer
 - name: tbfeats.TextBlobFeaturizer
 - name: ftfeat.FastTextFeaturizer
-  model: "/Users/vincent/Development/whatlies/cc.en.300.bin"
+  cache_dir: "/Users/vincent/Development/whatlies/"
+  file: "cc.en.300.bin"
 - name: printer.Printer
   alias: after fasttext
 - name: outlierfeature.OutlierComponent

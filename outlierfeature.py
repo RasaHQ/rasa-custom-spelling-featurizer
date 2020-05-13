@@ -33,7 +33,7 @@ class OutlierComponent(DenseFeaturizer):
     def required_components(cls) -> List[Type[Component]]:
         """Specify which components need to be present in the pipeline."""
         return [DenseFeaturizer]
-    
+
     @classmethod
     def required_packages(cls) -> List[Text]:
         return ["sklearn"]
@@ -43,14 +43,16 @@ class OutlierComponent(DenseFeaturizer):
 
     def __init__(self, component_config: Optional[Dict[Text, Any]] = None) -> None:
         super().__init__(component_config)
-        self.isolation = IsolationForest(self.component_config['n_estimators'])
+        self.isolation = IsolationForest(self.component_config["n_estimators"])
 
     def _set_outlier_features(self, message: Message, attribute: Text = TEXT):
         X = message.data[DENSE_FEATURE_NAMES[attribute]]
         scores = self.isolation.score_samples(X).reshape(-1, 1)
 
         features = self._combine_with_existing_dense_features(
-            message, additional_features=scores, feature_name=DENSE_FEATURE_NAMES[attribute]
+            message,
+            additional_features=scores,
+            feature_name=DENSE_FEATURE_NAMES[attribute],
         )
         message.set(DENSE_FEATURE_NAMES[attribute], features)
 
@@ -62,9 +64,7 @@ class OutlierComponent(DenseFeaturizer):
     ) -> None:
         X = np.stack(
             [
-                sequence_to_sentence_features(
-                    example.get(DENSE_FEATURE_NAMES[TEXT])
-                )
+                sequence_to_sentence_features(example.get(DENSE_FEATURE_NAMES[TEXT]))
                 for example in training_data.intent_examples
             ]
         )
@@ -78,9 +78,9 @@ class OutlierComponent(DenseFeaturizer):
         self._set_outlier_features(message)
 
     def persist(self, file_name: Text, model_dir: Text) -> Optional[Dict[Text, Any]]:
-        path = os.path.join(model_dir, file_name + '.pkl')
+        path = os.path.join(model_dir, file_name + ".pkl")
         dump(self, path)
-        return {"isolation_file": file_name + '.pkl'}
+        return {"isolation_file": file_name + ".pkl"}
 
     @classmethod
     def load(
