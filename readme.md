@@ -4,6 +4,10 @@ This repository contains a demo project with a custom made tokenizer and featuri
 
 It is maintained by Vincent D. Warmerdam, Research Advocate as [Rasa](https://rasa.com/).
 
+## This tool was made for Rasa Version 1.10. 
+
+If you're interested in seeing components that are compatible for Rasa 2.0 you might want to look at [this repository](https://github.com/RasaHQ/rasa-nlu-examples/) instead. 
+
 # Two Spelling Components
 ## A Tokenizer and A Featurizer
 
