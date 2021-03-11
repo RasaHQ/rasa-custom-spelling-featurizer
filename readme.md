@@ -246,7 +246,7 @@ Notice how `werld` got translated into `world`.
 It's nice that we've created our own tokenizer but since we're changing the original data
 we should be careful. It may be wise to generate features that will tell the model 
 that there's been a spelling correction. This way the 
-model has an opporunity to correct for it should the spelling correction make a mistake.
+model has an opportunity to correct for it should the spelling correction make a mistake.
 This also means that we get to write a `Featurizer`.
 
 In Rasa there's two types of features that you can add to a pipeline; 
